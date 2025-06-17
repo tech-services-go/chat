@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realtime Chat</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="js/firebase.js"></script>
+    <script src="js/chat.js" defer></script>
+</head>
+<body>
+    <div class="chat-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="user-profile">
+                    <img id="userAvatar" src="" alt="User Avatar">
+                    <span id="usernameDisplay"></span>
+                </div>
+                <button id="logoutBtn" class="logout-btn">Logout</button>
+            </div>
+            
+            <div class="search-container">
+                <input type="text" id="searchUsers" placeholder="Search users...">
+            </div>
+            
+            <div class="users-list" id="usersList">
+                <!-- Users will be populated here -->
+            </div>
+        </div>
+        
+        <!-- Chat Area -->
+        <div class="chat-area" id="chatArea">
+            <div class="no-chat-selected">
+                <h2>Select a user to start chatting</h2>
+                <p>Your messages will appear here</p>
+            </div>
+            
+            <div class="active-chat" id="activeChat" style="display: none;">
+                <div class="chat-header">
+                    <img id="chatUserAvatar" src="" alt="Chat User Avatar">
+                    <span id="chatUserName"></span>
+                </div>
+                
+                <div class="messages" id="messages">
+                    <!-- Messages will be populated here -->
+                </div>
+                
+                <div class="message-input">
+                    <input type="text" id="messageInput" placeholder="Type a message...">
+                    <button id="sendMessageBtn">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
