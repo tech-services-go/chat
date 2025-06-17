@@ -1,12 +1,12 @@
     // Firebase configuration - replace with your own
-    const firebaseConfig = {
-      apiKey: "AIzaSyA8Q3X1G4z4z4z4z4z4z4z4z4z4z4z4z4",
-      authDomain: "realtime-chat-12345.firebaseapp.com",
-      projectId: "realtime-chat-12345",
-      storageBucket: "realtime-chat-12345.appspot.com",
-      messagingSenderId: "123456789012",
-      appId: "1:123456789012:web:abcdef1234567890"
-    };
+const firebaseConfig = {
+  apiKey: "AIzaSyDd4aXqEpMqPQljMQrg0yZjSB-Lcs069C8",
+  authDomain: "realtime-chat-go.firebaseapp.com",
+  projectId: "realtime-chat-go",
+  storageBucket: "realtime-chat-go.firebasestorage.app",
+  messagingSenderId: "1045897341591",
+  appId: "1:1045897341591:web:d5c48955d86eefe01a97d2"
+};
 
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
