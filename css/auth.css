@@ -6,9 +6,10 @@
 }
 
 body {
-    background-color: #f5f5f5;
+    background-image: linear-gradient(to right, #3ab5b0 0%, #3d99be 31%, #56317a 100%);
     color: #333;
 }
+
 
 .auth-container {
     display: flex;
