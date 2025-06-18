@@ -5,6 +5,15 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+:root {
+    --hue1: 255;
+    --hue2: 222;
+    --border: 1px;
+    --border-color: hsl(var(--hue2), 12%, 20%);
+    --radius: 22px;
+    --ease: cubic-bezier(0.5, 1, 0.89, 1);   
+}
+
 body {
     background: #08090d;
     background-image: url(https://assets.codepen.io/13471/abstract-light.jpg), linear-gradient(to right in oklab, hsl(var(--hue2) 50% 75%), hsl(var(--hue1) 50% 75%));
