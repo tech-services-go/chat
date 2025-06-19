@@ -45,7 +45,6 @@ body::before {
 }
 
 #features {
-  padding: 120px 40px;
   text-align: center;
   position: relative;
   overflow: hidden;
