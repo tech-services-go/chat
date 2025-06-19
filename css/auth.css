@@ -22,9 +22,11 @@
 body {
   background-color: var(--space-background);
   color: var(--star-color);
-  line-height: 1.6;
-  position: relative;
-  overflow-x: hidden;
+  display: flex;
+  height: 100vh;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
 }
 
 body::before {
@@ -42,13 +44,6 @@ body::before {
   animation: starTwinkle 3s infinite alternate;
   opacity: 0.3;
   z-index: -1;
-}
-
-#features {
-  padding: 0 40px;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
 }
 
 .auth-container {
@@ -83,34 +78,32 @@ body::before {
   overflow: hidden;
 }
 
-/* .auth-card h1 {
+.auth-card h1 {
     margin-bottom: 10px;
-    color: #2c3e50;
 }
 
 .auth-card p {
     margin-bottom: 30px;
-    color: #7f8c8d;
-} */
+}
 
 .auth-button {
-    background-color: #4285F4;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 12px 24px;
-    font-size: 16px;
-    font-weight: 500;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    transition: background-color 0.3s;
+  background: var(--nebula-gradient);
+  color: var(--star-color);
+  font-family: 'Orbitron', sans-serif;
+  font-weight: bold;
+  width: 100%;
+  border: none;
+  padding: 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
 }
 
 .auth-button:hover {
-    background-color: #3367D6;
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
 }
 
 .auth-button img {
@@ -140,6 +133,16 @@ body::before {
     color: #e74c3c;
     font-size: 14px;
     height: 20px;
+}
+
+@media (max-width: 768px) {
+  .auth-container {
+    flex-direction: column;
+  }
+
+  .auth-card {
+    flex: 1 1 100%;
+  }
 }
 
 @keyframes starTwinkle {
