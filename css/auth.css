@@ -3,24 +3,43 @@
     padding: 0;
     box-sizing: border-box;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    scroll-behavior: smooth;
 }
 
 :root {
-    --hue1: 255;
-    --hue2: 222;
-    --border: 1px;
-    --border-color: hsl(var(--hue2), 12%, 20%);
-    --radius: 22px;
-    --ease: cubic-bezier(0.5, 1, 0.89, 1);   
+  --deep-purple: #4a148c;
+  --vibrant-purple: #6a1b9a;
+  --cosmic-blue: #1a237e;
+  --electric-blue: #0d47a1;
+  --nebula-gradient: linear-gradient(135deg, #4a148c, #0d47a1);
+  --space-background: #0f0f1a;
+  --star-color: #e0e0e0;
+  --accent-glow: rgba(106, 27, 154, 0.7);
 }
 
 body {
-    background: #08090d;
-    background-image: url(https://assets.codepen.io/13471/abstract-light.jpg), linear-gradient(to right in oklab, hsl(var(--hue2) 50% 75%), hsl(var(--hue1) 50% 75%));
-    background-size: cover;
-    background-position: center;
-    background-blend-mode: hard-light;
-    padding: 0;
+  background-color: var(--space-background);
+  color: var(--star-color);
+  line-height: 1.6;
+  position: relative;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(#ffffff 1px, transparent 1px),
+    radial-gradient(#ffffff 1px, transparent 1px);
+  background-size: 50px 50px;
+  background-position: 0 0, 25px 25px;
+  animation: starTwinkle 3s infinite alternate;
+  opacity: 0.3;
+  z-index: -1;
 }
 
 .auth-container {
@@ -98,4 +117,9 @@ body {
     color: #e74c3c;
     font-size: 14px;
     height: 20px;
+}
+
+@keyframes starTwinkle {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
 }
