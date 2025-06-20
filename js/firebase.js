@@ -6,15 +6,13 @@ const firebaseConfig = {
   storageBucket: "realtime-chat-go.appspot.com",
   messagingSenderId: "1045897341591",
   appId: "1:1045897341591:web:d5c48955d86eefe01a97d2",
-  measurementId: "G-KVV2M7Y70W",
-  databaseURL: "https://realtime-chat-go.firebaseio.com"
+  measurementId: "G-KVV2M7Y70W"
 };
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-const rtdb = firebase.database();
 const provider = new firebase.auth.GoogleAuthProvider();
 
 // Enable analytics (optional)
