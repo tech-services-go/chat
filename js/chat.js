@@ -69,7 +69,6 @@ searchUsers.addEventListener('input', (e) => {
     });
 });
 
-// Modify the addUserToSidebar function to use more aggressive status checking
 // Modified addUserToSidebar function (remove the 500ms threshold - too aggressive)
 function addUserToSidebar(user) {
     const userItem = document.createElement('div');
@@ -287,54 +286,6 @@ function setupEventListeners() {
     });
 }
 
-function setupPresenceSystem(user) {
-    const uid = user.uid;
-    const userStatusRef = rtdb.ref(`/status/${uid}`);
-    const userStatusFirestoreRef = db.collection('users').doc(uid);
-    
-    const isOfflineForFirestore = {
-        online: false,
-        lastActive: firebase.firestore.FieldValue.serverTimestamp()
-    };
-    
-    const isOnlineForFirestore = {
-        online: true,
-        lastActive: firebase.firestore.FieldValue.serverTimestamp()
-    };
-    
-    const isOfflineForRTDB = {
-        state: 'offline',
-        lastChanged: firebase.database.ServerValue.TIMESTAMP
-    };
-    
-    const isOnlineForRTDB = {
-        state: 'online',
-        lastChanged: firebase.database.ServerValue.TIMESTAMP
-    };
-    
-    rtdb.ref('.info/connected').on('value', (snapshot) => {
-        if (snapshot.val() === false) {
-            userStatusFirestoreRef.update(isOfflineForFirestore);
-            return;
-        }
-        
-        userStatusRef.onDisconnect()
-            .set(isOfflineForRTDB)
-            .then(() => {
-                userStatusRef.set(isOnlineForRTDB);
-                userStatusFirestoreRef.update(isOnlineForFirestore);
-            });
-    });
-    
-    // Monitor RTDB status changes for faster updates
-    userStatusRef.on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (data && data.state === 'offline') {
-            userStatusFirestoreRef.update(isOfflineForFirestore);
-        }
-    });
-}
-
 function handleAuthStateChange(user) {
     if (user) {
         currentUser = user;
@@ -350,9 +301,6 @@ function handleAuthStateChange(user) {
             lastActive: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
 
-        // Setup presence system
-        setupPresenceSystem(user);
-
         // Update lastActive timestamp periodically while online
         const activityInterval = setInterval(() => {
             if (document.visibilityState === 'visible') {
@@ -360,7 +308,7 @@ function handleAuthStateChange(user) {
                     lastActive: firebase.firestore.FieldValue.serverTimestamp()
                 });
             }
-        }, 30000); // Update every 30 seconds
+        }, 30000); // Update every 30 seconds (not 500ms - too aggressive)
 
         // Handle visibility changes
         document.addEventListener('visibilitychange', () => {
