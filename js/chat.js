@@ -69,14 +69,30 @@ searchUsers.addEventListener('input', (e) => {
     });
 });
 
-// Add user to sidebar
+// Modify the addUserToSidebar function to use more aggressive status checking
 function addUserToSidebar(user) {
     const userItem = document.createElement('div');
     userItem.className = 'user-item';
     userItem.dataset.userId = user.uid;
 
-    const lastActive = user.lastActive?.toDate();
-    const isOnline = lastActive && (new Date() - lastActive) < 5 * 60 * 1000;
+    // Set up a real-time listener for this user's status
+    const userStatusRef = db.collection('users').doc(user.uid);
+    const unsubscribe = userStatusRef.onSnapshot(doc => {
+        const userData = doc.data();
+        const statusIndicator = userItem.querySelector('.user-status');
+        
+        if (statusIndicator) {
+            const lastActive = userData.lastActive?.toDate();
+            const isOnline = userData.online || 
+                           (lastActive && (new Date() - lastActive) < 500); // 5 milli-seconds threshold
+            
+            statusIndicator.className = `user-status ${isOnline ? 'online' : ''}`;
+            statusIndicator.title = isOnline ? 'Online' : `Last seen ${formatLastActive(lastActive)}`;
+        }
+    });
+
+    // Store unsubscribe function to clean up later
+    userItem._unsubscribe = unsubscribe;
 
     userItem.innerHTML = `
         <img src="${user.photoURL || 'https://via.placeholder.com/40'}" alt="${user.usernameDisplay}">
@@ -84,11 +100,24 @@ function addUserToSidebar(user) {
             <h3>${user.usernameDisplay}</h3>
             <p>${user.email}</p>
         </div>
-        <div class="user-status ${isOnline ? 'online' : ''}"></div>
+        <div class="user-status ${user.online ? 'online' : ''}"></div>
     `;
     
     userItem.addEventListener('click', () => selectUser(user));
     usersList.appendChild(userItem);
+}
+
+// Helper function to format last active time
+function formatLastActive(timestamp) {
+    if (!timestamp) return 'a long time ago';
+    
+    const now = new Date();
+    const diff = now - timestamp;
+    
+    if (diff < 60000) return 'just now';
+    if (diff < 3600000) return `${Math.floor(diff / 60000)} minutes ago`;
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)} hours ago`;
+    return `${Math.floor(diff / 86400000)} days ago`;
 }
 
 // Load existing chats
@@ -257,60 +286,144 @@ function setupEventListeners() {
     });
 }
 
+// Add to your init function or auth state change handler
+function setupPresenceSystem(user) {
+    const uid = user.uid;
+    const userStatusRef = firebase.database().ref(`/status/${uid}`);
+    const userStatusFirestoreRef = db.collection('users').doc(uid);
+    
+    const isOfflineForFirestore = {
+        online: false,
+        lastActive: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    
+    const isOnlineForFirestore = {
+        online: true,
+        lastActive: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    
+    const isOfflineForRTDB = {
+        state: 'offline',
+        lastChanged: firebase.database.ServerValue.TIMESTAMP
+    };
+    
+    const isOnlineForRTDB = {
+        state: 'online',
+        lastChanged: firebase.database.ServerValue.TIMESTAMP
+    };
+    
+    firebase.database().ref('.info/connected').on('value', (snapshot) => {
+        if (snapshot.val() === false) {
+            userStatusFirestoreRef.update(isOfflineForFirestore);
+            return;
+        }
+        
+        userStatusRef.onDisconnect()
+            .set(isOfflineForRTDB)
+            .then(() => {
+                userStatusRef.set(isOnlineForRTDB);
+                userStatusFirestoreRef.update(isOnlineForFirestore);
+            });
+    });
+    
+    // Monitor RTDB status changes for faster updates
+    userStatusRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data && data.state === 'offline') {
+            userStatusFirestoreRef.update(isOfflineForFirestore);
+        }
+    });
+}
+
+// Modify the handleAuthStateChange function
 function handleAuthStateChange(user) {
     if (user) {
         currentUser = user;
-
         const userRef = db.collection('users').doc(user.uid);
 
-        userRef.update({
+        // Set initial online status
+        userRef.set({
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName,
+            photoURL: user.photoURL,
             online: true,
             lastActive: firebase.firestore.FieldValue.serverTimestamp()
-        }).catch(err => console.error('Error setting online:', err));
+        }, { merge: true });
 
+        // Add a real-time listener to detect connection state
+        const onlineRef = firebase.database().ref('.info/connected');
+        onlineRef.on('value', (snapshot) => {
+            if (snapshot.val() === false) {
+                // Immediately mark as offline if connection is lost
+                userRef.update({
+                    online: false,
+                    lastActive: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+        });
+
+        // Update lastActive timestamp periodically while online
+        const activityInterval = setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                userRef.update({
+                    lastActive: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+        }, 500); // Update every 5 milli-seconds
+
+        // Handle visibility changes
         document.addEventListener('visibilitychange', () => {
-            userRef.update({
-                online: document.visibilityState === 'visible',
-                lastActive: firebase.firestore.FieldValue.serverTimestamp()
-            }).catch(err => console.error('Visibility change error:', err));
+            if (document.visibilityState === 'visible') {
+                userRef.update({
+                    online: true,
+                    lastActive: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } else {
+                userRef.update({
+                    online: false,
+                    lastActive: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
         });
 
-        window.addEventListener('beforeunload', () => {
-            navigator.sendBeacon(`/update-status?uid=${user.uid}&online=false`);
+        // Clean up on logout
+        const cleanup = () => {
+        clearInterval(activityInterval);
+        onlineRef.off();
+        userStatusRef.off();
+        
+        // Clean up all user listeners
+        document.querySelectorAll('.user-item').forEach(item => {
+            if (item._unsubscribe) {
+                item._unsubscribe();
+            }
         });
-
-        window.addEventListener('unload', () => {
-            userRef.update({
-                online: false,
-                lastActive: firebase.firestore.FieldValue.serverTimestamp()
-            }).catch(err => console.error('Unload update error:', err));
+        
+        userRef.update({
+            online: false,
+            lastActive: firebase.firestore.FieldValue.serverTimestamp()
         });
+    };
+    
+    window.addEventListener('beforeunload', cleanup);
+    window.addEventListener('unload', cleanup);
 
-        // Moved setup logic here
+        // Load app data
         loadUserData();
         loadUsers();
         setupEventListeners();
+
     } else {
+        // Handle logout case
         if (currentUser) {
             db.collection('users').doc(currentUser.uid).update({
                 online: false,
                 lastActive: firebase.firestore.FieldValue.serverTimestamp()
-            }).catch(err => console.error('Sign-out update error:', err));
+            });
         }
-
         currentUser = null;
-
-        authContainer.style.display = 'flex';
-        appContainer.style.display = 'none';
-        googleAuth.style.display = 'block';
-        usernameSetup.style.display = 'none';
-
-        if (unsubscribeUsers) unsubscribeUsers();
-        if (unsubscribeChat) unsubscribeChat();
-        unsubscribeUsers = null;
-        unsubscribeChat = null;
     }
 }
-
 // Initialize the app
 init();
