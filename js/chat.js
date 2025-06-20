@@ -266,5 +266,70 @@ function setupEventListeners() {
     });
 }
 
+function handleAuthStateChange(user) {
+  if (user) {
+    currentUser = user;
+
+    const userRef = db.collection('users').doc(user.uid);
+
+    // Mark user online immediately
+    userRef.update({
+      online: true,
+      lastActive: firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(err => console.error('Error setting online:', err));
+
+    // Update status on tab visibility change
+    document.addEventListener('visibilitychange', () => {
+      userRef.update({
+        online: document.visibilityState === 'visible',
+        lastActive: firebase.firestore.FieldValue.serverTimestamp()
+      }).catch(err => console.error('Error updating visibility state:', err));
+    });
+
+    // Update status before unload
+    window.addEventListener('beforeunload', () => {
+      navigator.sendBeacon(
+        `/update-status?uid=${user.uid}&online=false`
+      );
+    });
+
+    // Optional: fallback if navigator.sendBeacon not used
+    window.addEventListener('unload', () => {
+      userRef.update({
+        online: false,
+        lastActive: firebase.firestore.FieldValue.serverTimestamp()
+      }).catch(err => console.error('Unload update error:', err));
+    });
+
+    // Continue app setup
+    loadUserData();
+    loadUsers();
+    setupEventListeners();
+
+  } else {
+    // Signed out: mark previous user offline if set
+    if (currentUser) {
+      db.collection('users').doc(currentUser.uid).update({
+        online: false,
+        lastActive: firebase.firestore.FieldValue.serverTimestamp()
+      }).catch(err => console.error('Sign-out update error:', err));
+    }
+
+    currentUser = null;
+
+    // Reset UI
+    authContainer.style.display = 'flex';
+    appContainer.style.display = 'none';
+    googleAuth.style.display = 'block';
+    usernameSetup.style.display = 'none';
+
+    // Cleanup Firestore listeners
+    if (unsubscribeUsers) unsubscribeUsers();
+    if (unsubscribeChat) unsubscribeChat();
+    unsubscribeUsers = null;
+    unsubscribeChat = null;
+  }
+}
+
 // Initialize the app
 init();
