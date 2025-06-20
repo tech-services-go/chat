@@ -30,6 +30,7 @@ function init() {
             window.location.href = 'auth.html';
         }
     });
+        auth.onAuthStateChanged(handleAuthStateChange);
 }
 
 // Load current user data
