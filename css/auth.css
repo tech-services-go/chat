@@ -139,6 +139,7 @@ form {
 
 .form-group input {
   padding: 15px;
+  width: 100%;
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid var(--vibrant-purple);
   border-radius: 8px;
