@@ -83,13 +83,17 @@ function addUserToSidebar(user) {
     const userItem = document.createElement('div');
     userItem.className = 'user-item';
     userItem.dataset.userId = user.uid;
-    
+
+    const lastActive = user.lastActive?.toDate();
+    const isOnline = lastActive && (new Date() - lastActive) < 5 * 60 * 1000;
+
     userItem.innerHTML = `
         <img src="${user.photoURL || 'https://via.placeholder.com/40'}" alt="${user.usernameDisplay}">
         <div class="user-info">
             <h3>${user.usernameDisplay}</h3>
             <p>${user.email}</p>
         </div>
+        <div class="user-status ${isOnline ? 'online' : ''}"></div>
     `;
     
     userItem.addEventListener('click', () => selectUser(user));
