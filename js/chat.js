@@ -70,6 +70,7 @@ searchUsers.addEventListener('input', (e) => {
 });
 
 // Modify the addUserToSidebar function to use more aggressive status checking
+// Modified addUserToSidebar function (remove the 500ms threshold - too aggressive)
 function addUserToSidebar(user) {
     const userItem = document.createElement('div');
     userItem.className = 'user-item';
@@ -84,7 +85,7 @@ function addUserToSidebar(user) {
         if (statusIndicator) {
             const lastActive = userData.lastActive?.toDate();
             const isOnline = userData.online || 
-                           (lastActive && (new Date() - lastActive) < 500); // 5 milli-seconds threshold
+                           (lastActive && (new Date() - lastActive) < 30000); // 30 seconds threshold
             
             statusIndicator.className = `user-status ${isOnline ? 'online' : ''}`;
             statusIndicator.title = isOnline ? 'Online' : `Last seen ${formatLastActive(lastActive)}`;
@@ -286,10 +287,9 @@ function setupEventListeners() {
     });
 }
 
-// Add to your init function or auth state change handler
 function setupPresenceSystem(user) {
     const uid = user.uid;
-    const userStatusRef = firebase.database().ref(`/status/${uid}`);
+    const userStatusRef = rtdb.ref(`/status/${uid}`);
     const userStatusFirestoreRef = db.collection('users').doc(uid);
     
     const isOfflineForFirestore = {
@@ -312,7 +312,7 @@ function setupPresenceSystem(user) {
         lastChanged: firebase.database.ServerValue.TIMESTAMP
     };
     
-    firebase.database().ref('.info/connected').on('value', (snapshot) => {
+    rtdb.ref('.info/connected').on('value', (snapshot) => {
         if (snapshot.val() === false) {
             userStatusFirestoreRef.update(isOfflineForFirestore);
             return;
@@ -335,7 +335,6 @@ function setupPresenceSystem(user) {
     });
 }
 
-// Modify the handleAuthStateChange function
 function handleAuthStateChange(user) {
     if (user) {
         currentUser = user;
@@ -351,17 +350,8 @@ function handleAuthStateChange(user) {
             lastActive: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
 
-        // Add a real-time listener to detect connection state
-        const onlineRef = firebase.database().ref('.info/connected');
-        onlineRef.on('value', (snapshot) => {
-            if (snapshot.val() === false) {
-                // Immediately mark as offline if connection is lost
-                userRef.update({
-                    online: false,
-                    lastActive: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            }
-        });
+        // Setup presence system
+        setupPresenceSystem(user);
 
         // Update lastActive timestamp periodically while online
         const activityInterval = setInterval(() => {
@@ -370,7 +360,7 @@ function handleAuthStateChange(user) {
                     lastActive: firebase.firestore.FieldValue.serverTimestamp()
                 });
             }
-        }, 500); // Update every 5 milli-seconds
+        }, 30000); // Update every 30 seconds
 
         // Handle visibility changes
         document.addEventListener('visibilitychange', () => {
@@ -389,25 +379,23 @@ function handleAuthStateChange(user) {
 
         // Clean up on logout
         const cleanup = () => {
-        clearInterval(activityInterval);
-        onlineRef.off();
-        userStatusRef.off();
-        
-        // Clean up all user listeners
-        document.querySelectorAll('.user-item').forEach(item => {
-            if (item._unsubscribe) {
-                item._unsubscribe();
-            }
-        });
-        
-        userRef.update({
-            online: false,
-            lastActive: firebase.firestore.FieldValue.serverTimestamp()
-        });
-    };
-    
-    window.addEventListener('beforeunload', cleanup);
-    window.addEventListener('unload', cleanup);
+            clearInterval(activityInterval);
+            
+            // Clean up all user listeners
+            document.querySelectorAll('.user-item').forEach(item => {
+                if (item._unsubscribe) {
+                    item._unsubscribe();
+                }
+            });
+            
+            userRef.update({
+                online: false,
+                lastActive: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        };
+
+        window.addEventListener('beforeunload', cleanup);
+        window.addEventListener('unload', cleanup);
 
         // Load app data
         loadUserData();
@@ -425,5 +413,6 @@ function handleAuthStateChange(user) {
         currentUser = null;
     }
 }
+
 // Initialize the app
 init();
