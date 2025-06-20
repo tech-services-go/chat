@@ -119,6 +119,19 @@ body {
     color: #bdc3c7;
 }
 
+.user-status {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #636e72;
+    margin-left: 15px;
+}
+
+.user-status.online {
+    background: #00b894;
+    box-shadow: 0 0 10px #00b894;
+}
+
 .chat-area {
     flex: 1;
     display: flex;
