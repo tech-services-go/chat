@@ -1,0 +1,65 @@
+[
+  {
+    "id": "1",
+    "name": "Me",
+    "avatar": "https://picsum.photos/300/300",
+    "lastMessage": "Why you are not replying",
+    "time": "11:30",
+    "unreadCount": 4,
+    "status": "sent"
+  },
+  {
+    "id": "2",
+    "name": "Adrian",
+    "avatar": "https://picsum.photos/500/500",
+    "lastMessage": "Let's meet today?",
+    "time": "11:30",
+    "unreadCount": 0,
+    "status": "read"
+  },
+  {
+    "id": "3",
+    "name": "Loress",
+    "avatar": "https://picsum.photos/800/800",
+    "lastMessage": "Will you watch the match today?",
+    "time": "11:30",
+    "unreadCount": 0,
+    "status": "delivered"
+  },
+  {
+    "id": "4",
+    "name": "Hicham",
+    "avatar": "https://picsum.photos/900/900",
+    "lastMessage": "I can't wait to meet you bro?",
+    "time": "11:30",
+    "unreadCount": 0,
+    "status": "sent"
+  },
+  {
+    "id": "5",
+    "name": "James",
+    "avatar": "https://picsum.photos/400/400",
+    "lastMessage": "Let's meet today?",
+    "time": "11:30",
+    "unreadCount": 4,
+    "status": "sent"
+  },
+  {
+    "id": "6",
+    "name": "Maria Lopez",
+    "avatar": "https://picsum.photos/750/740",
+    "lastMessage": "Voice Message",
+    "time": "11:30",
+    "unreadCount": 1,
+    "status": "sent"
+  },
+  {
+    "id": "7",
+    "name": "Nariman Joe",
+    "avatar": "https://picsum.photos/750/740",
+    "lastMessage": "Voice Message",
+    "time": "11:30",
+    "unreadCount": 0,
+    "status": "read"
+  }
+]
